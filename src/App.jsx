@@ -13,6 +13,17 @@ const CameraPlaceholderIcon = () => (
     <FaCamera size={48} className="placeholder-icon" />
 );
 
+// ALTERNATIVA DE ÁUDIO (MANTIDA COMENTADA PARA ESTABILIDADE)
+/*
+const AUDIO_SUCCESS = '/audio/success.mp3';
+const AUDIO_REJECTED = '/audio/rejected.mp3';
+const VOLUME = 0.9;
+const successAudio = new Audio(AUDIO_SUCCESS);
+successAudio.volume = VOLUME;
+const rejectedAudio = new Audio(AUDIO_REJECTED);
+rejectedAudio.volume = VOLUME;
+*/
+
 // Constantes de Status
 const STATUS_INITIAL = 'Aponte a câmera para um QR Code';
 const STATUS_SCANNING = 'Mantenha a câmera apontada para um QR Code';
@@ -37,6 +48,7 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
+    // const [audioUnlocked, setAudioUnlocked] = useState(false); // REMOVIDO PARA ESTABILIDADE
     
     // Efeito para Sincronizar o estado com o LocalStorage
     useEffect(() => {
@@ -47,6 +59,20 @@ function App() {
         }
     }, [scannedCodes]);
     
+    
+    // FUNÇÃO DE ÁUDIO (COMENTADA)
+    /*
+    const playSound = (isSuccess) => {
+        // if (audioUnlocked) { // DESCOMENTE SE audioUnlocked FOR USADO
+            const audio = isSuccess ? successAudio : rejectedAudio;
+            audio.pause();
+            audio.currentTime = 0; 
+            audio.play().catch(error => {
+                 console.log("Audio play failed (possible restriction):", error);
+            });
+        // }
+    };
+    */
 
     // Função para iniciar o scanner
     const startScanner = () => {
@@ -70,8 +96,10 @@ function App() {
 
                     // Lógica para Status (Som Removido)
                     if (isNewCode) {
+                        // playSound(true); // DESCOMENTE PARA ATIVAR O SOM
                         setStatusMessage(STATUS_SUCCESS);
                     } else {
+                        // playSound(false); // DESCOMENTE PARA ATIVAR O SOM
                         setStatusMessage(STATUS_REJECTED);
                     }
                     
@@ -114,7 +142,25 @@ function App() {
         return () => stopScanner();
     }, [cameraOn]);
 
-    const toggleCamera = () => {
+    const toggleCamera = async () => {
+        // LÓGICA DE DESBLOQUEIO DE ÁUDIO (COMENTADA)
+        /*
+        if (!audioUnlocked) {
+            try {
+                // Tenta tocar o som de sucesso com volume zero para liberar o áudio.
+                successAudio.volume = 0;
+                await successAudio.play();
+                successAudio.pause();
+                successAudio.currentTime = 0;
+                successAudio.volume = VOLUME; // Retorna ao volume normal para leituras futuras
+                
+                setAudioUnlocked(true);
+            } catch (error) {
+                 setAudioUnlocked(true);
+            }
+        }
+        */
+        
         setCameraOn((prev) => !prev);
     };
     
