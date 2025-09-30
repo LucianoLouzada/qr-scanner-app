@@ -24,9 +24,9 @@ let audioContext = null;
 let audioUnlocked = false;
 
 // Configurações do Áudio e Intervalos
-const VOLUME_MAX = 0.9; 
+const VOLUME_MAX = 1.5; 
 const SOUND_DEBOUNCE_MS = 500; // Debounce de 500ms para evitar spam de som
-const SCAN_PAUSE_AFTER_SUCCESS_MS = 1000; // Pausa a câmera por 1 segundo após um sucesso
+const SCAN_PAUSE_AFTER_SUCCESS_MS = 500; // Pausa a câmera por 1 segundo após um sucesso
 
 
 // FUNÇÃO PARA GERAR UM BEEP DISTINTO POR SUCESSO/RECUSA (Web Audio API)
@@ -127,7 +127,7 @@ function App() {
                         playBeep(true); 
                         setStatusMessage(STATUS_SUCCESS);
                         
-                        // AÇÃO CHAVE: PAUSA O SCANNER por 1s após o sucesso
+                        // AÇÃO CHAVE: PAUSA O SCANNER por 0,5s após o sucesso
                         if (qrScannerRef.current) {
                             qrScannerRef.current.stop(); 
                             
@@ -217,7 +217,7 @@ function App() {
             {/* CARD 1: Título */}
             <div className="card app-header">
                 <h1>Scanner QR Code</h1>
-                <p>Escaneie QR codes únicos com sua câmera</p>
+                <p></p>
             </div>
 
             {/* CARD 2: Scanner / Placeholder */}
@@ -262,7 +262,7 @@ function App() {
             {/* CARD 4: Resetar */}
             <div className="card reset-card">
                 <button className="reset-btn" onClick={resetCount}>
-                    <AiOutlineReload size={18} style={{ marginRight: '8px' }} /> Resetar Contador
+                    <AiOutlineReload size={18} style={{ marginRight: '8px' }} /> Resetar
                 </button>
             </div>
             
