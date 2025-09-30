@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
 import { FaCamera, FaQrcode } from 'react-icons/fa';
-import { AiOutlineReload } from 'react-icons/ai'; 
+import { AiOutlineReload } from 'react-icons/ai'; // CORRIGIDO AQUI!
 
 import "./App.scss";
 
@@ -25,6 +25,7 @@ let audioUnlocked = false;
 
 // Configurações do Áudio
 const VOLUME_MAX = 0.9;
+const SOUND_INTERVAL_MS = 500; // Intervalo de 500ms entre os beeps
 
 // FUNÇÃO PARA GERAR UM BEEP DISTINTO POR SUCESSO/RECUSA (Web Audio API)
 const playBeep = (isSuccess) => {
@@ -76,6 +77,11 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
+    // Controle do último código aceito para evitar beep duplo
+    const lastAcceptedCodeRef = useRef(null);
+    const [repeatBlock, setRepeatBlock] = useState(false);
+    // **ESTADO PARA O INTERVALO (DEBOUNCE)**
+    const [isThrottled, setIsThrottled] = useState(false); 
     
     // Efeito para Sincronizar o estado com o LocalStorage
     useEffect(() => {
@@ -95,31 +101,47 @@ function App() {
 
             qrScannerRef.current = new QrScanner(
                 videoRef.current,
-                (result) => {
-                    const code = result.data; 
-                    let isNewCode = false;
-
-                    setScannedCodes((prev) => {
-                        if (!prev.includes(code)) {
-                            isNewCode = true; 
-                            return [...prev, code];
-                        }
-                        return prev;
-                    });
-
-                    // Lógica para Status e Beep
-                    if (isNewCode) {
-                        playBeep(true); 
-                        setStatusMessage(STATUS_SUCCESS);
-                    } else {
-                        playBeep(false);
-                        setStatusMessage(STATUS_REJECTED);
+                async (result) => {
+                    if (isThrottled || repeatBlock) {
+                        return;
                     }
-                    
+                    const code = result.data;
+                    // Se for novo, toca beep de aceito e bloqueia beep de negado por 1s
+                    if (!scannedCodes.includes(code)) {
+                        setScannedCodes((prev) => [...prev, code]);
+                        lastAcceptedCodeRef.current = code;
+                        playBeep(true);
+                        setStatusMessage(STATUS_SUCCESS);
+                        setIsThrottled(true);
+                        setRepeatBlock(true);
+                        // Pausa o scanner por 1s
+                        if (qrScannerRef.current) {
+                            await qrScannerRef.current.stop();
+                            setTimeout(() => {
+                                if (qrScannerRef.current) {
+                                    qrScannerRef.current.start();
+                                }
+                                setIsThrottled(false);
+                                setTimeout(() => setRepeatBlock(false), 500); // Libera beep negado só depois
+                            }, 1000);
+                        } else {
+                            setTimeout(() => {
+                                setIsThrottled(false);
+                                setTimeout(() => setRepeatBlock(false), 500);
+                            }, 1000);
+                        }
+                    } else {
+                        // Só permite beep de negado se não for logo após aceito
+                        if (!repeatBlock && lastAcceptedCodeRef.current !== code) {
+                            playBeep(false);
+                            setStatusMessage(STATUS_REJECTED);
+                            setIsThrottled(true);
+                            setTimeout(() => setIsThrottled(false), SOUND_INTERVAL_MS);
+                        }
+                    }
                     setTimeout(() => {
                         setStatusMessage(STATUS_SCANNING);
                     }, 3000);
-
                 },
                 {
                     highlightScanRegion: true,

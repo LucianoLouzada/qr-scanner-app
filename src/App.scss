@@ -1,14 +1,15 @@
 // Variáveis básicas (mantidas)
-$primary-color: #4a90e2; 
-$text-color: #333;
-$subtitle-color: #6c757d;
-$app-bg: #f5f5f5;
-$card-bg: #fff;
-$card-shadow: rgba(0,0,0,0.1);
-$button-bg: $primary-color;
+
+$primary-color: #3a3f4a; // Cinza escuro azulado
+$text-color: #bfff00; // Verde limão
+$subtitle-color: #bfff00; // Verde limão para subtítulos
+$app-bg: #23272f; // Fundo geral escuro
+$card-bg: #2c2f36; // Cartões um pouco mais claros
+$card-shadow: rgba(0,0,0,0.4);
+$button-bg: #bfff00c0; // Botão escuro
 $button-color: #fff;
-$button-hover: #357ab8;
-$placeholder-bg: #f0f0f0; 
+$button-hover: #5a5e6e;
+$placeholder-bg: #23272f; // Mesmo do fundo
 
 // Cores de status
 $status-success-color: #28a745;
@@ -60,6 +61,7 @@ body, html {
 
 .app-header h1 {
     margin: 0 0 0.25rem 0;
+    color: $text-color;
 }
 .app-header p {
     color: $subtitle-color;
@@ -110,8 +112,8 @@ body, html {
         position: absolute;
         bottom: 1rem;
         z-index: 3;
-        background: $button-bg;
-        color: $button-color;
+    background: $button-bg;
+    color: $button-color;
         border: none;
         width: 50px;
         height: 50px;
@@ -137,10 +139,11 @@ body, html {
         h2 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
+            color: $text-color;
         }
 
         .status-tag {
-            background: #e0e0e0;
+            background: #353945;
             color: $text-color;
             border: none;
             padding: 0.3rem 0.6rem;
@@ -172,9 +175,9 @@ body, html {
 
 .reset-card {
     .reset-btn {
-        background: #f0f0f0;
-        color: $text-color;
-        border: 1px solid #ccc;
+    background: #353945;
+    color: $text-color;
+    border: 1px solid #444857;
         padding: 0.75rem 1.5rem;
         border-radius: 20px;
         cursor: pointer;
@@ -184,7 +187,7 @@ body, html {
         transition: background 0.3s;
 
         &:hover {
-            background: #e0e0e0;
+            background: #444857;
         }
     }
 }
@@ -199,9 +202,9 @@ body, html {
         padding: 0;
         margin: 0;
         li {
-            background: #f8f8f8;
+            background: #23272f;
             padding: 0.3rem 0.5rem;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #353945;
             word-break: break-all;
             font-size: 0.8rem;
         }
