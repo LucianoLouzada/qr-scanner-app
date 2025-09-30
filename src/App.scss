@@ -21,29 +21,26 @@ body, html {
     font-family: Arial, sans-serif;
     background: $app-bg;
     
-    // **SOLUÇÃO DE VIEWPORT E FLEXBOX NO BODY PARA CENTRALIZAÇÃO TOTAL**
+    // Configuração padrão de altura para scrollar e largura total
     height: 100%;
     min-height: 100vh;
-    height: 100svh; 
     width: 100%;
-    overflow: hidden; 
 
-    // **NOVAS REGRAS PARA CENTRALIZAR O CONTEÚDO DO BODY**
-    display: flex;
-    justify-content: center; /* Centraliza horizontalmente o app-container */
-    align-items: flex-start; /* Alinha o app-container ao topo (para evitar centralização vertical estranha) */
+    // REMOVIDO: Regras de Flexbox (display: flex; justify-content: center;) do body.
+    // O foco é no mobile, então removemos a centralização horizontal forçada para PC.
 }
 
 .app-container {
     display: flex;
     flex-direction: column;
-    align-items: center; 
-    padding: 2rem;
-    min-height: 100svh;
+    align-items: center; // Mantém a centralização dos cards
+    padding: 1rem; // Padding ajustado para ser mais mobile-friendly
     height: 100%; 
+    min-height: 100vh; 
     overflow-y: auto; 
     width: 100%;
-    max-width: 450px; /* Limita o tamanho máximo do container no PC */
+    max-width: 450px; // Limita a largura para dispositivos grandes, mas centralizado via body/margin.
+    margin: 0 auto; // Centraliza o container principal na tela (importante para PC)
     gap: 1.5rem;
     padding-bottom: 5rem; 
 }
@@ -52,14 +49,11 @@ body, html {
     background: $card-bg;
     width: 100%;
     max-width: 400px;
-    /* Remover margin: 0 auto; dos cards, pois o align-items: center faz isso */
     border-radius: 10px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px $card-shadow;
     text-align: center;
 }
-
-// ... (Restante dos estilos (app-header, qr-section, results-card, etc.) permanecem iguais)
 
 .app-header h1 {
     margin: 0 0 0.25rem 0;
@@ -210,7 +204,6 @@ body, html {
     .app-container {
         padding: 1rem;
         gap: 1rem;
-        /* Remove max-width para que ocupe 100% da tela menor */
         max-width: 100%; 
     }
 

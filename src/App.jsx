@@ -13,16 +13,8 @@ const CameraPlaceholderIcon = () => (
     <FaCamera size={48} className="placeholder-icon" />
 );
 
-// Constantes para caminhos e volume de áudio
-const AUDIO_SUCCESS = '/audio/success.mp3';
-const AUDIO_REJECTED = '/audio/rejected.mp3';
-const VOLUME = 0.9; // Volume alto (0.0 a 1.0)
-
-// Instâncias de Áudio fora do componente para garantir que sejam carregadas uma vez
-const successAudio = new Audio(AUDIO_SUCCESS);
-successAudio.volume = VOLUME;
-const rejectedAudio = new Audio(AUDIO_REJECTED);
-rejectedAudio.volume = VOLUME;
+// REMOVIDO: Constantes de áudio (AUDIO_SUCCESS, AUDIO_REJECTED, VOLUME)
+// REMOVIDO: Instâncias de áudio (successAudio, rejectedAudio)
 
 // Constantes de Status
 const STATUS_INITIAL = 'Aponte a câmera para um QR Code';
@@ -48,8 +40,7 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
-    // Estado para rastrear se o áudio foi liberado pela interação do usuário
-    const [audioUnlocked, setAudioUnlocked] = useState(false); 
+    // REMOVIDO: Estado de áudio (audioUnlocked)
     
     // Efeito para Sincronizar o estado com o LocalStorage
     useEffect(() => {
@@ -60,20 +51,8 @@ function App() {
         }
     }, [scannedCodes]);
 
-    // Função para tocar o som: Apenas chama play() na instância pré-carregada
-    const playSound = (isSuccess) => {
-        if (audioUnlocked) {
-            const audio = isSuccess ? successAudio : rejectedAudio;
-            
-            // Pausa e reseta a posição (currentTime) para garantir que possa tocar rapidamente
-            audio.pause();
-            audio.currentTime = 0; 
-            
-            audio.play().catch(error => {
-                 console.log("Audio play failed (possible restriction):", error);
-            });
-        }
-    };
+    // REMOVIDO: Função playSound
+    
 
     // Função para iniciar o scanner
     const startScanner = () => {
@@ -95,12 +74,10 @@ function App() {
                         return prev;
                     });
 
-                    // Lógica para Som e Status
+                    // Lógica para Status (Som Removido)
                     if (isNewCode) {
-                        playSound(true); // true = success
                         setStatusMessage(STATUS_SUCCESS);
                     } else {
-                        playSound(false); // false = rejected
                         setStatusMessage(STATUS_REJECTED);
                     }
                     
@@ -143,26 +120,8 @@ function App() {
         return () => stopScanner();
     }, [cameraOn]);
 
-    const toggleCamera = async () => {
-        // **SOLUÇÃO FINAL DE ÁUDIO:** Toca o som silenciosamente na interação do usuário.
-        if (!audioUnlocked) {
-            try {
-                // Tenta tocar o som de sucesso com volume zero para liberar o áudio.
-                successAudio.volume = 0;
-                await successAudio.play();
-                successAudio.pause();
-                successAudio.currentTime = 0;
-                successAudio.volume = VOLUME; // Retorna ao volume normal para leituras futuras
-                
-                setAudioUnlocked(true);
-                console.log("Áudio desbloqueado pela última técnica de play silencioso.");
-            } catch (error) {
-                 // Se falhar (o que é raro aqui), apenas avança, o som pode funcionar depois.
-                 setAudioUnlocked(true);
-                 console.log("Áudio desbloqueado por fallback simples.");
-            }
-        }
-        
+    const toggleCamera = () => {
+        // REMOVIDO: Toda a lógica complexa de desbloqueio de áudio.
         setCameraOn((prev) => !prev);
     };
     
