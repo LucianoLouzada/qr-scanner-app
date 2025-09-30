@@ -23,8 +23,10 @@ const STATUS_REJECTED = 'QR Code já foi lido.';
 let audioContext = null;
 let audioUnlocked = false;
 
+// Configurações do Áudio
+const VOLUME_MAX = 0.9;
 
-// FUNÇÃO PARA GERAR UM BEEP SIMPLES E ALTO (Web Audio API)
+// FUNÇÃO PARA GERAR UM BEEP DISTINTO POR SUCESSO/RECUSA (Web Audio API)
 const playBeep = (isSuccess) => {
     if (!audioUnlocked) return;
     
@@ -38,22 +40,22 @@ const playBeep = (isSuccess) => {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    // AJUSTES DE VOLUME E FREQUÊNCIA DISTINTAS
-    const SUCCESS_FREQ = 1000; // Agudo e Forte para sucesso
-    const REJECT_FREQ = 300;   // Grave e Baixo para recusa
-    const VOLUME_MAX = 0.9;    // Volume bem alto (0.0 a 1.0)
-    const DURATION = 0.1;      // Duração de 100ms
-
-    // Configura o tipo de onda e volume
-    oscillator.type = 'square';
-    gainNode.gain.setValueAtTime(VOLUME_MAX, audioContext.currentTime);
-    
-    // Configura a frequência
-    oscillator.frequency.setValueAtTime(isSuccess ? SUCCESS_FREQ : REJECT_FREQ, audioContext.currentTime);
-    
-    // Inicia e para o som
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + DURATION);
+    // Configurações de som para Sucesso vs Recusa
+    if (isSuccess) {
+        // **Sucesso:** Rápido, Agudo, e Onda Senoidal (suave)
+        oscillator.type = 'sine'; // Onda mais limpa e suave
+        oscillator.frequency.setValueAtTime(1500, audioContext.currentTime); // Super agudo
+        gainNode.gain.setValueAtTime(VOLUME_MAX, audioContext.currentTime);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.08); // Extremamente rápido (80ms)
+    } else {
+        // **Recusa:** Lento, Grave, e Onda Quadrada (agressiva)
+        oscillator.type = 'square'; // Onda mais "forte"
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime); // Grave
+        gainNode.gain.setValueAtTime(VOLUME_MAX, audioContext.currentTime);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.3); // Mais longo (300ms)
+    }
 };
 
 
@@ -154,7 +156,7 @@ function App() {
     }, [cameraOn]);
 
     const toggleCamera = async () => {
-        // SOLUÇÃO DE ÁUDIO DE BEEP: Tenta liberar o AudioContext no primeiro clique
+        // Tenta liberar o AudioContext no primeiro clique
         if (!audioUnlocked) {
              if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();

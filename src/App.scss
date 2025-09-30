@@ -1,4 +1,4 @@
-// Variáveis básicas
+// Variáveis básicas (mantidas)
 $primary-color: #4a90e2; 
 $text-color: #333;
 $subtitle-color: #6c757d;
@@ -21,14 +21,14 @@ body, html {
     font-family: Arial, sans-serif;
     background: $app-bg;
     
-    height: 100%;
-    min-height: 100vh;
+    // Simplificado para largura e altura naturais
+    height: 100%; 
     width: 100%;
 
-    // **AJUSTE FINAL DE CENTRALIZAÇÃO:** Força o app-container para o centro exato da tela
+    // Centralização Horizontal (Apenas)
     display: flex;
-    justify-content: center; /* Centraliza Horizontalmente */
-    align-items: center; /* Centraliza Verticalmente */
+    justify-content: center;
+    align-items: flex-start; /* Garante que o conteúdo comece no topo */
 }
 
 .app-container {
@@ -36,17 +36,13 @@ body, html {
     flex-direction: column;
     align-items: center; 
     
-    // **AJUSTE DE PADDING:** Padding superior e inferior para dar margem de respiração.
+    // **AJUSTE CHAVE:** Padding superior para dar respiro.
     padding: 2rem 1rem; 
     
-    // Removido min-height: 100vh; daqui. Deixamos a centralização a cargo do body.
-    overflow-y: auto; /* Permite scroll se o conteúdo for maior que a tela */
+    // Usamos altura e scroll naturais
     width: 100%;
-    max-width: 450px; /* Limite de largura para PC/Desktop */
-    
-    /* Quando o conteúdo é menor que a tela, fica centralizado.
-       Quando é maior (como no mobile), o body centraliza o topo do container,
-       mas o padding superior (2rem) dá o respiro inicial. */
+    max-width: 450px; 
+    overflow-y: auto; 
     
     gap: 1.5rem;
     padding-bottom: 5rem; 
@@ -79,7 +75,7 @@ body, html {
     background: $placeholder-bg;
     position: relative;
     
-    // Reduz a área da câmera para estabilizar
+    // Reduz a área da câmera para estabilizar (90% mantido)
     width: 90%; 
     max-width: 350px; 
     margin: 0 auto; 
