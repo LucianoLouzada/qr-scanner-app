@@ -1,4 +1,4 @@
-// Variáveis básicas (Usando a última paleta de cores não-gradient, pois solicitou ignorar a alteração)
+// Variáveis básicas
 $primary-color: #4a90e2; 
 $text-color: #333;
 $subtitle-color: #6c757d;
@@ -21,36 +21,45 @@ body, html {
     font-family: Arial, sans-serif;
     background: $app-bg;
     
-    // **SOLUÇÃO CRÍTICA PARA MOBILE VIEWPORT**
+    // **SOLUÇÃO DE VIEWPORT E FLEXBOX NO BODY PARA CENTRALIZAÇÃO TOTAL**
     height: 100%;
     min-height: 100vh;
-    overflow: hidden; /* Evita scroll desnecessário que desestabiliza a view */
-    position: fixed; /* Força o body a se comportar como a janela de visualização */
+    height: 100svh; 
     width: 100%;
+    overflow: hidden; 
+
+    // **NOVAS REGRAS PARA CENTRALIZAR O CONTEÚDO DO BODY**
+    display: flex;
+    justify-content: center; /* Centraliza horizontalmente o app-container */
+    align-items: flex-start; /* Alinha o app-container ao topo (para evitar centralização vertical estranha) */
 }
 
 .app-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center; 
     padding: 2rem;
-    min-height: 100vh;
-    height: 100%; /* Garante que o container interno use o espaço total */
-    overflow-y: auto; /* Permite scrollar apenas o conteúdo dos cards, se necessário */
+    min-height: 100svh;
+    height: 100%; 
+    overflow-y: auto; 
     width: 100%;
+    max-width: 450px; /* Limita o tamanho máximo do container no PC */
     gap: 1.5rem;
-    padding-bottom: 5rem; /* Padding extra para visualizar o último card confortavelmente */
+    padding-bottom: 5rem; 
 }
 
 .card {
     background: $card-bg;
     width: 100%;
     max-width: 400px;
+    /* Remover margin: 0 auto; dos cards, pois o align-items: center faz isso */
     border-radius: 10px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px $card-shadow;
     text-align: center;
 }
+
+// ... (Restante dos estilos (app-header, qr-section, results-card, etc.) permanecem iguais)
 
 .app-header h1 {
     margin: 0 0 0.25rem 0;
@@ -60,7 +69,6 @@ body, html {
     font-size: 0.9rem;
 }
 
-// Estilos para o Scanner/Placeholder
 .scanner-card {
     padding: 0;
     overflow: hidden;
@@ -122,7 +130,6 @@ body, html {
     }
 }
 
-// Estilos para Resultados
 .results-card {
     .result {
         h2 {
@@ -161,7 +168,6 @@ body, html {
     }
 }
 
-// Estilos para Resetar
 .reset-card {
     .reset-btn {
         background: #f0f0f0;
@@ -181,7 +187,6 @@ body, html {
     }
 }
 
-// Estilos para Lista de Códigos
 .scanned-list {
     text-align: left;
     h3 {
@@ -201,11 +206,12 @@ body, html {
     }
 }
 
-// Estilos de Responsividade
 @media (max-width: 600px) {
     .app-container {
         padding: 1rem;
         gap: 1rem;
+        /* Remove max-width para que ocupe 100% da tela menor */
+        max-width: 100%; 
     }
 
     .card {

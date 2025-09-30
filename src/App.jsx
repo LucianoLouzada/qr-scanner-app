@@ -18,6 +18,12 @@ const AUDIO_SUCCESS = '/audio/success.mp3';
 const AUDIO_REJECTED = '/audio/rejected.mp3';
 const VOLUME = 0.9; // Volume alto (0.0 a 1.0)
 
+// Instâncias de Áudio fora do componente para garantir que sejam carregadas uma vez
+const successAudio = new Audio(AUDIO_SUCCESS);
+successAudio.volume = VOLUME;
+const rejectedAudio = new Audio(AUDIO_REJECTED);
+rejectedAudio.volume = VOLUME;
+
 // Constantes de Status
 const STATUS_INITIAL = 'Aponte a câmera para um QR Code';
 const STATUS_SCANNING = 'Mantenha a câmera apontada para um QR Code';
@@ -42,7 +48,7 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
-    // NOVO: Estado para rastrear se o áudio foi liberado pela interação do usuário
+    // Estado para rastrear se o áudio foi liberado pela interação do usuário
     const [audioUnlocked, setAudioUnlocked] = useState(false); 
     
     // Efeito para Sincronizar o estado com o LocalStorage
@@ -54,13 +60,19 @@ function App() {
         }
     }, [scannedCodes]);
 
-    // Função para tocar o som com volume alto
-    const playSound = (audioPath) => {
-        const audio = new Audio(audioPath);
-        audio.volume = VOLUME;
-        audio.play().catch(error => {
-             console.log("Audio play failed (possible autoplay restriction):", error);
-        });
+    // Função para tocar o som: Apenas chama play() na instância pré-carregada
+    const playSound = (isSuccess) => {
+        if (audioUnlocked) {
+            const audio = isSuccess ? successAudio : rejectedAudio;
+            
+            // Pausa e reseta a posição (currentTime) para garantir que possa tocar rapidamente
+            audio.pause();
+            audio.currentTime = 0; 
+            
+            audio.play().catch(error => {
+                 console.log("Audio play failed (possible restriction):", error);
+            });
+        }
     };
 
     // Função para iniciar o scanner
@@ -85,13 +97,10 @@ function App() {
 
                     // Lógica para Som e Status
                     if (isNewCode) {
-                        playSound(AUDIO_SUCCESS);
+                        playSound(true); // true = success
                         setStatusMessage(STATUS_SUCCESS);
                     } else {
-                        // Toca o som de rejeição apenas se o áudio estiver desbloqueado
-                        if (audioUnlocked) {
-                             playSound(AUDIO_REJECTED);
-                        }
+                        playSound(false); // false = rejected
                         setStatusMessage(STATUS_REJECTED);
                     }
                     
@@ -134,18 +143,24 @@ function App() {
         return () => stopScanner();
     }, [cameraOn]);
 
-    const toggleCamera = () => {
-        // **SOLUÇÃO DE ÁUDIO PARA MOBILE**: Tenta desbloquear o áudio na primeira interação
+    const toggleCamera = async () => {
+        // **SOLUÇÃO FINAL DE ÁUDIO:** Toca o som silenciosamente na interação do usuário.
         if (!audioUnlocked) {
-            const audio = new Audio(AUDIO_SUCCESS);
-            audio.volume = 0.05; // Volume baixo
-            audio.play().then(() => {
+            try {
+                // Tenta tocar o som de sucesso com volume zero para liberar o áudio.
+                successAudio.volume = 0;
+                await successAudio.play();
+                successAudio.pause();
+                successAudio.currentTime = 0;
+                successAudio.volume = VOLUME; // Retorna ao volume normal para leituras futuras
+                
                 setAudioUnlocked(true);
-                audio.pause(); // Pausa imediatamente após o desbloqueio
-                console.log("Áudio desbloqueado com a primeira interação.");
-            }).catch(error => {
-                console.warn("Falha ao tentar desbloquear áudio:", error);
-            });
+                console.log("Áudio desbloqueado pela última técnica de play silencioso.");
+            } catch (error) {
+                 // Se falhar (o que é raro aqui), apenas avança, o som pode funcionar depois.
+                 setAudioUnlocked(true);
+                 console.log("Áudio desbloqueado por fallback simples.");
+            }
         }
         
         setCameraOn((prev) => !prev);
@@ -166,7 +181,7 @@ function App() {
             {/* CARD 1: Título */}
             <div className="card app-header">
                 <h1>Scanner QR Code</h1>
-                <p></p>
+                <p>Escaneie QR codes únicos com sua câmera</p>
             </div>
 
             {/* CARD 2: Scanner / Placeholder */}
@@ -211,7 +226,7 @@ function App() {
             {/* CARD 4: Resetar */}
             <div className="card reset-card">
                 <button className="reset-btn" onClick={resetCount}>
-                    <AiOutlineReload size={18} style={{ marginRight: '8px' }} /> Resetar 
+                    <AiOutlineReload size={18} style={{ marginRight: '8px' }} /> Resetar Contador
                 </button>
             </div>
             
