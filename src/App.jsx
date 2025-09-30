@@ -13,9 +13,6 @@ const CameraPlaceholderIcon = () => (
     <FaCamera size={48} className="placeholder-icon" />
 );
 
-// REMOVIDO: Constantes de áudio (AUDIO_SUCCESS, AUDIO_REJECTED, VOLUME)
-// REMOVIDO: Instâncias de áudio (successAudio, rejectedAudio)
-
 // Constantes de Status
 const STATUS_INITIAL = 'Aponte a câmera para um QR Code';
 const STATUS_SCANNING = 'Mantenha a câmera apontada para um QR Code';
@@ -40,7 +37,6 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
-    // REMOVIDO: Estado de áudio (audioUnlocked)
     
     // Efeito para Sincronizar o estado com o LocalStorage
     useEffect(() => {
@@ -50,8 +46,6 @@ function App() {
             console.error("Erro ao salvar dados no LocalStorage:", error);
         }
     }, [scannedCodes]);
-
-    // REMOVIDO: Função playSound
     
 
     // Função para iniciar o scanner
@@ -121,7 +115,6 @@ function App() {
     }, [cameraOn]);
 
     const toggleCamera = () => {
-        // REMOVIDO: Toda a lógica complexa de desbloqueio de áudio.
         setCameraOn((prev) => !prev);
     };
     

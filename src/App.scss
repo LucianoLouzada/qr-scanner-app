@@ -21,26 +21,28 @@ body, html {
     font-family: Arial, sans-serif;
     background: $app-bg;
     
-    // Configuração padrão de altura para scrollar e largura total
+    // Configuração padrão para scrollar e largura total
     height: 100%;
     min-height: 100vh;
     width: 100%;
 
-    // REMOVIDO: Regras de Flexbox (display: flex; justify-content: center;) do body.
-    // O foco é no mobile, então removemos a centralização horizontal forçada para PC.
+    // Garante que o container principal fique centralizado na tela (PC)
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Alinha o conteúdo ao topo da tela, evitando deslocamento vertical */
 }
 
 .app-container {
     display: flex;
     flex-direction: column;
-    align-items: center; // Mantém a centralização dos cards
-    padding: 1rem; // Padding ajustado para ser mais mobile-friendly
+    align-items: center; 
+    padding: 2rem 1rem; /* Padding vertical ajustado para dar respiro */
     height: 100%; 
-    min-height: 100vh; 
-    overflow-y: auto; 
+    min-height: 100vh; /* Garante que a altura mínima seja preenchida */
+    overflow-y: auto; /* Permite o scroll */
     width: 100%;
-    max-width: 450px; // Limita a largura para dispositivos grandes, mas centralizado via body/margin.
-    margin: 0 auto; // Centraliza o container principal na tela (importante para PC)
+    max-width: 450px; /* Limite de largura para PC/Desktop */
+    margin: 0 auto; /* Garante a centralização horizontal em telas grandes */
     gap: 1.5rem;
     padding-bottom: 5rem; 
 }
