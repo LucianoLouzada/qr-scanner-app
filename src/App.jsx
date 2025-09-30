@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
 import { FaCamera, FaQrcode } from 'react-icons/fa';
-import { AiOutlineReload } from 'react-icons/ai'; // CORRIGIDO AQUI!
+import { AiOutlineReload } from 'react-icons/ai'; 
 
 import "./App.scss";
 
@@ -19,13 +19,15 @@ const STATUS_SCANNING = 'Mantenha a câmera apontada para um QR Code';
 const STATUS_SUCCESS = 'QR Code novo lido com sucesso!';
 const STATUS_REJECTED = 'QR Code já foi lido.';
 
-// Variáveis globais para o AudioContext (para ser inicializado no primeiro clique)
+// Variáveis globais para o AudioContext
 let audioContext = null;
 let audioUnlocked = false;
 
-// Configurações do Áudio
-const VOLUME_MAX = 1.0; // Volume máximo
-const SOUND_INTERVAL_MS = 500; // Intervalo de 500ms entre os beeps
+// Configurações do Áudio e Intervalos
+const VOLUME_MAX = 0.9; 
+const SOUND_DEBOUNCE_MS = 500; // Debounce de 500ms para evitar spam de som
+const SCAN_PAUSE_AFTER_SUCCESS_MS = 1000; // Pausa a câmera por 1 segundo após um sucesso
+
 
 // FUNÇÃO PARA GERAR UM BEEP DISTINTO POR SUCESSO/RECUSA (Web Audio API)
 const playBeep = (isSuccess) => {
@@ -43,19 +45,19 @@ const playBeep = (isSuccess) => {
 
     // Configurações de som para Sucesso vs Recusa
     if (isSuccess) {
-        // **Sucesso:** Rápido, Agudo, e Onda Senoidal (suave)
-        oscillator.type = 'sine'; // Onda mais limpa e suave
-        oscillator.frequency.setValueAtTime(1500, audioContext.currentTime); // Super agudo
+        // Sucesso: Rápido, Agudo, Senoidal
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1500, audioContext.currentTime); 
         gainNode.gain.setValueAtTime(VOLUME_MAX, audioContext.currentTime);
         oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.08); // Extremamente rápido (80ms)
+        oscillator.stop(audioContext.currentTime + 0.08); 
     } else {
-        // **Recusa:** Lento, Grave, e Onda Quadrada (agressiva)
-        oscillator.type = 'square'; // Onda mais "forte"
-        oscillator.frequency.setValueAtTime(400, audioContext.currentTime); // Grave
+        // Recusa: Lento, Grave, Quadrada
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime); 
         gainNode.gain.setValueAtTime(VOLUME_MAX, audioContext.currentTime);
         oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.3); // Mais longo (300ms)
+        oscillator.stop(audioContext.currentTime + 0.3); 
     }
 };
 
@@ -63,12 +65,15 @@ const playBeep = (isSuccess) => {
 function App() {
     const videoRef = useRef(null);
     const qrScannerRef = useRef(null);
+    const scannedCodesRef = useRef([]); // Ref para acessar o estado atualizado dentro do scanner
 
     // Inicializa o estado lendo do LocalStorage (Persistência de Dados)
     const [scannedCodes, setScannedCodes] = useState(() => {
         try {
             const savedCodes = localStorage.getItem(STORAGE_KEY);
-            return savedCodes ? JSON.parse(savedCodes) : [];
+            const codes = savedCodes ? JSON.parse(savedCodes) : [];
+            scannedCodesRef.current = codes; // Inicializa a Ref
+            return codes;
         } catch (error) {
             console.error("Erro ao carregar dados do LocalStorage:", error);
             return [];
@@ -77,14 +82,13 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
-    // Controle do último código aceito para evitar beep duplo
-    const lastAcceptedCodeRef = useRef(null);
-    const [repeatBlock, setRepeatBlock] = useState(false);
-    // **ESTADO PARA O INTERVALO (DEBOUNCE)**
-    const [isThrottled, setIsThrottled] = useState(false); 
+    
+    // Estado para controlar o debounce do som
+    const [isSoundThrottled, setIsSoundThrottled] = useState(false); 
     
     // Efeito para Sincronizar o estado com o LocalStorage
     useEffect(() => {
+        scannedCodesRef.current = scannedCodes; // Mantém a Ref atualizada
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(scannedCodes));
         } catch (error) {
@@ -93,7 +97,7 @@ function App() {
     }, [scannedCodes]);
     
 
-    // Função para iniciar o scanner
+    // Função para iniciar o scanner (passada como callback puro para o useEffect)
     const startScanner = () => {
         if (videoRef.current) {
             videoRef.current.style.display = 'block';
@@ -101,44 +105,51 @@ function App() {
 
             qrScannerRef.current = new QrScanner(
                 videoRef.current,
-                async (result) => {
-                    if (isThrottled) {
-                        return;
+                (result) => {
+                    
+                    const code = result.data; 
+                    
+                    // Verifica se é código novo usando a Ref (acesso síncrono ao array)
+                    const isNewCode = !scannedCodesRef.current.includes(code); 
+                    
+                    
+                    // 1. CONTROLE DE SOM (DEBOUNCE)
+                    if (isSoundThrottled) {
+                        return; 
                     }
-                    const code = result.data;
-                    // Só registra e bipa se for novo
-                    if (!scannedCodes.includes(code)) {
-                        setScannedCodes((prev) => {
-                            if (!prev.includes(code)) {
-                                playBeep(true);
-                                setStatusMessage(STATUS_SUCCESS);
-                                setIsThrottled(true);
-                                // Pausa o scanner por 1s
+                    setIsSoundThrottled(true); 
+                    setTimeout(() => setIsSoundThrottled(false), SOUND_DEBOUNCE_MS); 
+
+
+                    // 2. FEEDBACK, ATUALIZAÇÃO DE ESTADO E INTERVALO
+                    if (isNewCode) {
+                        setScannedCodes((prev) => [...prev, code]); // Adiciona o código novo
+                        playBeep(true); 
+                        setStatusMessage(STATUS_SUCCESS);
+                        
+                        // AÇÃO CHAVE: PAUSA O SCANNER por 1s após o sucesso
+                        if (qrScannerRef.current) {
+                            qrScannerRef.current.stop(); 
+                            
+                            setTimeout(() => {
                                 if (qrScannerRef.current) {
-                                    qrScannerRef.current.stop();
-                                    setTimeout(() => {
-                                        if (qrScannerRef.current) {
-                                            qrScannerRef.current.start();
-                                        }
-                                        setIsThrottled(false);
-                                    }, 1000);
-                                } else {
-                                    setTimeout(() => setIsThrottled(false), 1000);
+                                    qrScannerRef.current.start(); 
+                                    setStatusMessage(STATUS_SCANNING);
                                 }
-                                return [...prev, code];
-                            }
-                            return prev;
-                        });
+                            }, SCAN_PAUSE_AFTER_SUCCESS_MS);
+                        }
+
                     } else {
-                        // Só bipa negado, não registra
+                        // Código repetido
                         playBeep(false);
                         setStatusMessage(STATUS_REJECTED);
-                        setIsThrottled(true);
-                        setTimeout(() => setIsThrottled(false), SOUND_INTERVAL_MS);
+                        
+                        // Status volta ao normal após 3s
+                        setTimeout(() => {
+                            setStatusMessage(STATUS_SCANNING);
+                        }, 3000);
                     }
-                    setTimeout(() => {
-                        setStatusMessage(STATUS_SCANNING);
-                    }, 3000);
+
                 },
                 {
                     highlightScanRegion: true,
@@ -147,6 +158,7 @@ function App() {
                     maxScansPerSecond: 1, 
                 }
             );
+            // Inicia o scanner
             qrScannerRef.current.start();
         }
     };
@@ -171,8 +183,9 @@ function App() {
         } else {
             stopScanner();
         }
+        // Limpeza: garante que o scanner seja destruído ao desmontar ou desligar
         return () => stopScanner();
-    }, [cameraOn]);
+    }, [cameraOn]); // Dependência apenas de cameraOn
 
     const toggleCamera = async () => {
         // Tenta liberar o AudioContext no primeiro clique

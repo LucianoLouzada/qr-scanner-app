@@ -1,6 +1,4 @@
-// Variáveis básicas (mantidas)
-
-
+// Variáveis básicas
 $primary-color: #4a90e2;
 $text-color: #333;
 $subtitle-color: #6c757d;
@@ -16,31 +14,26 @@ $placeholder-bg: #f0f0f0;
 $status-success-color: #28a745;
 $status-rejected-color: #dc3545;
 
-
+// Cores para elementos escuros
+$dark-text-color: #fff;
+$dark-card-bg: #353945;
+$dark-card-hover: #444857;
 
 body, html {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
     background: $app-bg;
+    
+    // Garante 100% da tela mobile
     min-height: 100vh;
-    min-width: 100vw;
-    width: 100vw;
-    height: 100vh;
+    width: 100%; 
     overflow-x: hidden;
-}
-
-.app-container {
+    
+    // Flexbox para centralizar o container principal
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    width: 100vw;
-    max-width: 100vw;
-    padding: 2rem 1rem;
-    gap: 1.5rem;
-    box-sizing: border-box;
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: flex-start; /* Permite que o conteúdo comece do topo e o scroll funcione */
 }
 
 .app-container {
@@ -48,30 +41,30 @@ body, html {
     flex-direction: column;
     align-items: center; 
     
-    // **AJUSTE CHAVE:** Padding superior para dar respiro.
-    padding: 2rem 1rem; 
-    
-    // Usamos altura e scroll naturais
+    // Configurações Mobile
     width: 100%;
     max-width: 450px; 
-    overflow-y: auto; 
     
-    gap: 1.5rem;
-    padding-bottom: 5rem; 
+    padding: 1rem;
+    padding-bottom: 3rem; 
+    
+    gap: 1rem; 
+    box-sizing: border-box;
 }
 
 .card {
     background: $card-bg;
     width: 100%;
-    max-width: 400px;
-    border-radius: 10px;
-    padding: 1.5rem;
+    max-width: 100%; 
+    border-radius: 8px; 
+    padding: 1.25rem;
     box-shadow: 0 2px 8px $card-shadow;
     text-align: center;
 }
 
 .app-header h1 {
     margin: 0 0 0.25rem 0;
+    font-size: 1.5rem;
     color: $text-color;
 }
 .app-header p {
@@ -82,18 +75,17 @@ body, html {
 .scanner-card {
     padding: 0;
     overflow: hidden;
+    border-radius: 8px;
 }
 
 .qr-section {
     background: $placeholder-bg;
     position: relative;
     
-    // Reduz a área da câmera para estabilizar (90% mantido)
-    width: 90%; 
-    max-width: 350px; 
-    margin: 0 auto; 
-    
+    // Garante um quadrado de visualização estável
+    width: 100%; 
     aspect-ratio: 1 / 1; 
+    
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -121,15 +113,18 @@ body, html {
 
     .btn-toggle-camera {
         position: absolute;
+        top: auto; 
         bottom: 1rem;
         z-index: 3;
-    background: $button-bg;
-    color: $button-color;
+        
+        background: $button-bg;
+        color: $button-color;
         border: none;
         width: 50px;
         height: 50px;
         border-radius: 50%;
         cursor: pointer;
+        
         display: flex;
         align-items: center;
         justify-content: center;
@@ -154,7 +149,7 @@ body, html {
         }
 
         .status-tag {
-            background: #353945;
+            background: #e0e0e0;
             color: $text-color;
             border: none;
             padding: 0.3rem 0.6rem;
@@ -186,9 +181,9 @@ body, html {
 
 .reset-card {
     .reset-btn {
-    background: #353945;
-    color: $text-color;
-    border: 1px solid #444857;
+        background: $dark-card-bg;
+        color: $dark-text-color;
+        border: 1px solid $dark-card-hover;
         padding: 0.75rem 1.5rem;
         border-radius: 20px;
         cursor: pointer;
@@ -198,7 +193,7 @@ body, html {
         transition: background 0.3s;
 
         &:hover {
-            background: #444857;
+            background: $dark-card-hover;
         }
     }
 }
@@ -207,35 +202,19 @@ body, html {
     text-align: left;
     h3 {
         margin-bottom: 0.5rem;
+        color: $text-color;
     }
     ul {
         list-style: none;
         padding: 0;
         margin: 0;
         li {
-            background: #23272f;
+            background: #f8f8f8; 
+            color: $text-color;
             padding: 0.3rem 0.5rem;
-            border-bottom: 1px solid #353945;
+            border-bottom: 1px solid #eee;
             word-break: break-all;
             font-size: 0.8rem;
         }
-    }
-}
-
-@media (max-width: 600px) {
-    .app-container {
-        padding: 1rem;
-        gap: 1rem;
-        max-width: 100%; 
-    }
-
-    .card {
-        max-width: 100%; 
-        border-radius: 8px; 
-        padding: 1.25rem;
-    }
-
-    .app-header h1 {
-        font-size: 1.5rem;
     }
 }
