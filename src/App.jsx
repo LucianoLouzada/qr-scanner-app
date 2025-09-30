@@ -24,7 +24,7 @@ let audioContext = null;
 let audioUnlocked = false;
 
 // Configurações do Áudio
-const VOLUME_MAX = 0.9;
+const VOLUME_MAX = 1.0; // Volume máximo
 const SOUND_INTERVAL_MS = 500; // Intervalo de 500ms entre os beeps
 
 // FUNÇÃO PARA GERAR UM BEEP DISTINTO POR SUCESSO/RECUSA (Web Audio API)
@@ -102,42 +102,39 @@ function App() {
             qrScannerRef.current = new QrScanner(
                 videoRef.current,
                 async (result) => {
-                    if (isThrottled || repeatBlock) {
+                    if (isThrottled) {
                         return;
                     }
                     const code = result.data;
-                    // Se for novo, toca beep de aceito e bloqueia beep de negado por 1s
+                    // Só registra e bipa se for novo
                     if (!scannedCodes.includes(code)) {
-                        setScannedCodes((prev) => [...prev, code]);
-                        lastAcceptedCodeRef.current = code;
-                        playBeep(true);
-                        setStatusMessage(STATUS_SUCCESS);
-                        setIsThrottled(true);
-                        setRepeatBlock(true);
-                        // Pausa o scanner por 1s
-                        if (qrScannerRef.current) {
-                            await qrScannerRef.current.stop();
-                            setTimeout(() => {
+                        setScannedCodes((prev) => {
+                            if (!prev.includes(code)) {
+                                playBeep(true);
+                                setStatusMessage(STATUS_SUCCESS);
+                                setIsThrottled(true);
+                                // Pausa o scanner por 1s
                                 if (qrScannerRef.current) {
-                                    qrScannerRef.current.start();
+                                    qrScannerRef.current.stop();
+                                    setTimeout(() => {
+                                        if (qrScannerRef.current) {
+                                            qrScannerRef.current.start();
+                                        }
+                                        setIsThrottled(false);
+                                    }, 1000);
+                                } else {
+                                    setTimeout(() => setIsThrottled(false), 1000);
                                 }
-                                setIsThrottled(false);
-                                setTimeout(() => setRepeatBlock(false), 500); // Libera beep negado só depois
-                            }, 1000);
-                        } else {
-                            setTimeout(() => {
-                                setIsThrottled(false);
-                                setTimeout(() => setRepeatBlock(false), 500);
-                            }, 1000);
-                        }
+                                return [...prev, code];
+                            }
+                            return prev;
+                        });
                     } else {
-                        // Só permite beep de negado se não for logo após aceito
-                        if (!repeatBlock && lastAcceptedCodeRef.current !== code) {
-                            playBeep(false);
-                            setStatusMessage(STATUS_REJECTED);
-                            setIsThrottled(true);
-                            setTimeout(() => setIsThrottled(false), SOUND_INTERVAL_MS);
-                        }
+                        // Só bipa negado, não registra
+                        playBeep(false);
+                        setStatusMessage(STATUS_REJECTED);
+                        setIsThrottled(true);
+                        setTimeout(() => setIsThrottled(false), SOUND_INTERVAL_MS);
                     }
                     setTimeout(() => {
                         setStatusMessage(STATUS_SCANNING);
