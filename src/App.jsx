@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
-// Ícones necessários (requer 'react-icons')
 import { FaCamera, FaQrcode } from 'react-icons/fa';
 import { AiOutlineReload } from 'react-icons/ai'; 
 
@@ -30,11 +29,10 @@ function App() {
     const videoRef = useRef(null);
     const qrScannerRef = useRef(null);
 
-    // 1. Inicializa o estado lendo do LocalStorage
+    // Inicializa o estado lendo do LocalStorage (Persistência de Dados)
     const [scannedCodes, setScannedCodes] = useState(() => {
         try {
             const savedCodes = localStorage.getItem(STORAGE_KEY);
-            // Retorna o array parseado ou um array vazio se não houver nada
             return savedCodes ? JSON.parse(savedCodes) : [];
         } catch (error) {
             console.error("Erro ao carregar dados do LocalStorage:", error);
@@ -44,9 +42,10 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
+    // NOVO: Estado para rastrear se o áudio foi liberado pela interação do usuário
+    const [audioUnlocked, setAudioUnlocked] = useState(false); 
     
-    // 2. Efeito para Sincronizar o estado com o LocalStorage
-    // Salva a lista toda vez que 'scannedCodes' é atualizado
+    // Efeito para Sincronizar o estado com o LocalStorage
     useEffect(() => {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(scannedCodes));
@@ -60,7 +59,6 @@ function App() {
         const audio = new Audio(audioPath);
         audio.volume = VOLUME;
         audio.play().catch(error => {
-             // Ignora erro de autoplay em alguns navegadores, mas registra no console
              console.log("Audio play failed (possible autoplay restriction):", error);
         });
     };
@@ -77,7 +75,6 @@ function App() {
                     const code = result.data; 
                     let isNewCode = false;
 
-                    // Atualiza o estado com base no valor anterior
                     setScannedCodes((prev) => {
                         if (!prev.includes(code)) {
                             isNewCode = true; 
@@ -91,11 +88,13 @@ function App() {
                         playSound(AUDIO_SUCCESS);
                         setStatusMessage(STATUS_SUCCESS);
                     } else {
-                        playSound(AUDIO_REJECTED);
+                        // Toca o som de rejeição apenas se o áudio estiver desbloqueado
+                        if (audioUnlocked) {
+                             playSound(AUDIO_REJECTED);
+                        }
                         setStatusMessage(STATUS_REJECTED);
                     }
                     
-                    // Reseta a mensagem de status após 3 segundos
                     setTimeout(() => {
                         setStatusMessage(STATUS_SCANNING);
                     }, 3000);
@@ -125,28 +124,40 @@ function App() {
         setStatusMessage(STATUS_INITIAL);
     };
 
-    // Efeito para ligar/desligar o scanner (executa no montagem e quando cameraOn muda)
+    // Efeito para ligar/desligar o scanner
     useEffect(() => {
         if (cameraOn) {
             startScanner();
         } else {
             stopScanner();
         }
-        // Cleanup: desliga o scanner ao desmontar o componente
         return () => stopScanner();
     }, [cameraOn]);
 
-    const toggleCamera = () => setCameraOn((prev) => !prev);
+    const toggleCamera = () => {
+        // **SOLUÇÃO DE ÁUDIO PARA MOBILE**: Tenta desbloquear o áudio na primeira interação
+        if (!audioUnlocked) {
+            const audio = new Audio(AUDIO_SUCCESS);
+            audio.volume = 0.05; // Volume baixo
+            audio.play().then(() => {
+                setAudioUnlocked(true);
+                audio.pause(); // Pausa imediatamente após o desbloqueio
+                console.log("Áudio desbloqueado com a primeira interação.");
+            }).catch(error => {
+                console.warn("Falha ao tentar desbloquear áudio:", error);
+            });
+        }
+        
+        setCameraOn((prev) => !prev);
+    };
     
     const resetCount = () => {
-        // Limpa o LocalStorage e o estado
         try {
             localStorage.removeItem(STORAGE_KEY);
         } catch (error) {
              console.error("Erro ao limpar dados do LocalStorage:", error);
         }
         setScannedCodes([]);
-        // Define o status dependendo se a câmera está ligada ou não
         setStatusMessage(cameraOn ? STATUS_SCANNING : STATUS_INITIAL);
     };
 
@@ -155,7 +166,7 @@ function App() {
             {/* CARD 1: Título */}
             <div className="card app-header">
                 <h1>Scanner QR Code</h1>
-                <p>Escaneie QR codes únicos com sua câmera</p>
+                <p></p>
             </div>
 
             {/* CARD 2: Scanner / Placeholder */}
@@ -200,7 +211,7 @@ function App() {
             {/* CARD 4: Resetar */}
             <div className="card reset-card">
                 <button className="reset-btn" onClick={resetCount}>
-                    <AiOutlineReload size={18} style={{ marginRight: '8px' }} /> Resetar Contador
+                    <AiOutlineReload size={18} style={{ marginRight: '8px' }} /> Resetar 
                 </button>
             </div>
             

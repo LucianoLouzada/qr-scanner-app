@@ -1,5 +1,5 @@
-// Variáveis básicas
-$primary-color: #4a90e2; // Cor do botão flutuante (azul)
+// Variáveis básicas (Usando a última paleta de cores não-gradient, pois solicitou ignorar a alteração)
+$primary-color: #4a90e2; 
 $text-color: #333;
 $subtitle-color: #6c757d;
 $app-bg: #f5f5f5;
@@ -8,13 +8,25 @@ $card-shadow: rgba(0,0,0,0.1);
 $button-bg: $primary-color;
 $button-color: #fff;
 $button-hover: #357ab8;
-$placeholder-bg: #f0f0f0; // Cor de fundo do scanner quando desligado
+$placeholder-bg: #f0f0f0; 
+
+// Cores de status
+$status-success-color: #28a745;
+$status-rejected-color: #dc3545;
+
 
 body, html {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
     background: $app-bg;
+    
+    // **SOLUÇÃO CRÍTICA PARA MOBILE VIEWPORT**
+    height: 100%;
+    min-height: 100vh;
+    overflow: hidden; /* Evita scroll desnecessário que desestabiliza a view */
+    position: fixed; /* Força o body a se comportar como a janela de visualização */
+    width: 100%;
 }
 
 .app-container {
@@ -23,8 +35,11 @@ body, html {
     align-items: center;
     padding: 2rem;
     min-height: 100vh;
-    gap: 1.5rem;
+    height: 100%; /* Garante que o container interno use o espaço total */
+    overflow-y: auto; /* Permite scrollar apenas o conteúdo dos cards, se necessário */
     width: 100%;
+    gap: 1.5rem;
+    padding-bottom: 5rem; /* Padding extra para visualizar o último card confortavelmente */
 }
 
 .card {
@@ -55,26 +70,15 @@ body, html {
     background: $placeholder-bg;
     position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1; // Deixa quadrado
+    aspect-ratio: 1 / 1; 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     overflow: hidden;
 
-    // Placeholder (área central com ícone e texto)
     .camera-placeholder {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: $subtitle-color;
-        z-index: 2;
+        color: $subtitle-color; 
         
         .placeholder-icon {
             color: $subtitle-color;
@@ -82,18 +86,16 @@ body, html {
         }
     }
     
-    // Vídeo do Scanner
     .scanner-video {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        display: none; // Controlado pelo JS
+        display: none; 
         position: absolute;
         top: 0;
         left: 0;
     }
 
-    // Botão Flutuante (cor azul)
     .btn-toggle-camera {
         position: absolute;
         bottom: 1rem;
@@ -142,7 +144,6 @@ body, html {
             cursor: default;
         }
 
-        // Estilos para a mensagem de status
         .scan-status {
             color: $subtitle-color;
             font-size: 0.95rem;
@@ -151,11 +152,11 @@ body, html {
         }
 
         .status-success {
-            color: #28a745; /* Verde para sucesso */
+            color: $status-success-color; 
         }
 
         .status-rejected {
-            color: #dc3545; /* Vermelho para rejeitado */
+            color: $status-rejected-color; 
         }
     }
 }
@@ -180,11 +181,31 @@ body, html {
     }
 }
 
-// Estilos de Responsividade para Telas Pequenas (Celulares)
+// Estilos para Lista de Códigos
+.scanned-list {
+    text-align: left;
+    h3 {
+        margin-bottom: 0.5rem;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        li {
+            background: #f8f8f8;
+            padding: 0.3rem 0.5rem;
+            border-bottom: 1px solid #eee;
+            word-break: break-all;
+            font-size: 0.8rem;
+        }
+    }
+}
+
+// Estilos de Responsividade
 @media (max-width: 600px) {
     .app-container {
-        padding: 1rem; // Reduz o padding lateral
-        gap: 1rem; // Reduz o espaçamento entre os cards
+        padding: 1rem;
+        gap: 1rem;
     }
 
     .card {
@@ -195,9 +216,5 @@ body, html {
 
     .app-header h1 {
         font-size: 1.5rem;
-    }
-    
-    .qr-section .camera-placeholder .placeholder-icon {
-        font-size: 40px; 
     }
 }
