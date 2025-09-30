@@ -13,22 +13,48 @@ const CameraPlaceholderIcon = () => (
     <FaCamera size={48} className="placeholder-icon" />
 );
 
-// ALTERNATIVA DE ÁUDIO (MANTIDA COMENTADA PARA ESTABILIDADE)
-/*
-const AUDIO_SUCCESS = '/audio/success.mp3';
-const AUDIO_REJECTED = '/audio/rejected.mp3';
-const VOLUME = 0.9;
-const successAudio = new Audio(AUDIO_SUCCESS);
-successAudio.volume = VOLUME;
-const rejectedAudio = new Audio(AUDIO_REJECTED);
-rejectedAudio.volume = VOLUME;
-*/
-
 // Constantes de Status
 const STATUS_INITIAL = 'Aponte a câmera para um QR Code';
 const STATUS_SCANNING = 'Mantenha a câmera apontada para um QR Code';
 const STATUS_SUCCESS = 'QR Code novo lido com sucesso!';
 const STATUS_REJECTED = 'QR Code já foi lido.';
+
+// Variáveis globais para o AudioContext (para ser inicializado no primeiro clique)
+let audioContext = null;
+let audioUnlocked = false;
+
+
+// FUNÇÃO PARA GERAR UM BEEP SIMPLES E ALTO (Web Audio API)
+const playBeep = (isSuccess) => {
+    if (!audioUnlocked) return;
+    
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // AJUSTES DE VOLUME E FREQUÊNCIA DISTINTAS
+    const SUCCESS_FREQ = 1000; // Agudo e Forte para sucesso
+    const REJECT_FREQ = 300;   // Grave e Baixo para recusa
+    const VOLUME_MAX = 0.9;    // Volume bem alto (0.0 a 1.0)
+    const DURATION = 0.1;      // Duração de 100ms
+
+    // Configura o tipo de onda e volume
+    oscillator.type = 'square';
+    gainNode.gain.setValueAtTime(VOLUME_MAX, audioContext.currentTime);
+    
+    // Configura a frequência
+    oscillator.frequency.setValueAtTime(isSuccess ? SUCCESS_FREQ : REJECT_FREQ, audioContext.currentTime);
+    
+    // Inicia e para o som
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + DURATION);
+};
 
 
 function App() {
@@ -48,7 +74,6 @@ function App() {
 
     const [cameraOn, setCameraOn] = useState(false); 
     const [statusMessage, setStatusMessage] = useState(STATUS_INITIAL);
-    // const [audioUnlocked, setAudioUnlocked] = useState(false); // REMOVIDO PARA ESTABILIDADE
     
     // Efeito para Sincronizar o estado com o LocalStorage
     useEffect(() => {
@@ -59,20 +84,6 @@ function App() {
         }
     }, [scannedCodes]);
     
-    
-    // FUNÇÃO DE ÁUDIO (COMENTADA)
-    /*
-    const playSound = (isSuccess) => {
-        // if (audioUnlocked) { // DESCOMENTE SE audioUnlocked FOR USADO
-            const audio = isSuccess ? successAudio : rejectedAudio;
-            audio.pause();
-            audio.currentTime = 0; 
-            audio.play().catch(error => {
-                 console.log("Audio play failed (possible restriction):", error);
-            });
-        // }
-    };
-    */
 
     // Função para iniciar o scanner
     const startScanner = () => {
@@ -94,12 +105,12 @@ function App() {
                         return prev;
                     });
 
-                    // Lógica para Status (Som Removido)
+                    // Lógica para Status e Beep
                     if (isNewCode) {
-                        // playSound(true); // DESCOMENTE PARA ATIVAR O SOM
+                        playBeep(true); 
                         setStatusMessage(STATUS_SUCCESS);
                     } else {
-                        // playSound(false); // DESCOMENTE PARA ATIVAR O SOM
+                        playBeep(false);
                         setStatusMessage(STATUS_REJECTED);
                     }
                     
@@ -143,24 +154,17 @@ function App() {
     }, [cameraOn]);
 
     const toggleCamera = async () => {
-        // LÓGICA DE DESBLOQUEIO DE ÁUDIO (COMENTADA)
-        /*
+        // SOLUÇÃO DE ÁUDIO DE BEEP: Tenta liberar o AudioContext no primeiro clique
         if (!audioUnlocked) {
-            try {
-                // Tenta tocar o som de sucesso com volume zero para liberar o áudio.
-                successAudio.volume = 0;
-                await successAudio.play();
-                successAudio.pause();
-                successAudio.currentTime = 0;
-                successAudio.volume = VOLUME; // Retorna ao volume normal para leituras futuras
-                
-                setAudioUnlocked(true);
-            } catch (error) {
-                 setAudioUnlocked(true);
+             if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            audioUnlocked = true;
         }
-        */
-        
+
         setCameraOn((prev) => !prev);
     };
     
