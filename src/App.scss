@@ -1,0 +1,233 @@
+// Variáveis básicas
+$primary-color: #4a90e2;
+$text-color: #333;
+$subtitle-color: #6c757d;
+$app-bg: #f5f5f5;
+$card-bg: #fff;
+$card-shadow: rgba(0,0,0,0.1);
+$button-bg: $primary-color;
+$button-color: #fff;
+$button-hover: #357ab8;
+$placeholder-bg: #f0f0f0;
+
+// Cores de status
+$status-success-color: #28a745;
+$status-rejected-color: #dc3545;
+
+// Cores para elementos escuros
+$dark-text-color: #fff;
+$dark-card-bg: #353945;
+$dark-card-hover: #444857;
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: $app-bg;
+    min-height: 100vh;
+    width: 100%; 
+    overflow-x: hidden;
+    
+    // Configuração para centralizar o container principal usando Flexbox (pode ser mantida)
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; // Mantemos no topo, mas centralizado
+}
+
+.app-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 1rem;
+    box-sizing: border-box;
+    
+    // ----------------------------------------------------------------
+    // NOVO LAYOUT PRINCIPAL: USANDO CSS GRID
+    // ----------------------------------------------------------------
+    display: grid;
+    // Define as áreas nomeadas: cabeçalho, scanner e lista
+    grid-template-areas: 
+        "header"
+        "scanner"
+        "list";
+    // Define o espaçamento entre as áreas
+    gap: 1.5rem; 
+
+    @media (min-width: 768px) {
+        max-width: 900px;
+        padding: 2rem;
+        // Layout para telas maiores: scanner/lista lado a lado
+        grid-template-columns: 1fr 1fr; // Duas colunas de largura igual
+        grid-template-areas: 
+            "header header" // Cabeçalho em toda a largura
+            "scanner list"; // Scanner à esquerda, Lista à direita
+        gap: 2rem;
+    }
+}
+
+// ----------------------------------------------------------------
+// NOVAS ÁREAS DE LAYOUT (ISOLAMENTO)
+// ----------------------------------------------------------------
+
+.card {
+    background: $card-bg;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px $card-shadow;
+    transition: transform 0.2s;
+    text-align: center;
+    color: $text-color;
+    box-sizing: border-box;
+
+    h1, h2 {
+        color: $primary-color;
+        margin-top: 0;
+    }
+}
+
+.header {
+    grid-area: header; // Alocação na área 'header'
+    text-align: center;
+    .sub {
+        color: $subtitle-color;
+        font-size: 0.9rem;
+    }
+}
+
+.scanner {
+    grid-area: scanner; // Alocação na área 'scanner'
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .video-wrap {
+        width: 100%;
+        max-width: 400px; // Limita o vídeo para não esticar muito em telas grandes
+        aspect-ratio: 1 / 1; // Garante que a área de vídeo é quadrada
+        position: relative;
+        overflow: hidden;
+        background: $placeholder-bg;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+
+        .scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: $subtitle-color;
+            p { margin-top: 0.5rem; font-size: 0.9rem; }
+        }
+    }
+    
+    // Controles agora usam Flexbox para se alinhar horizontalmente
+    .controls {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap; 
+        margin-bottom: 1rem;
+    }
+
+    .status {
+        background: $dark-card-bg;
+        color: $dark-text-color;
+        padding: 0.75rem;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        font-weight: bold;
+        p { margin: 0; }
+        .btn { 
+            background: $dark-card-hover; 
+            color: $dark-text-color;
+        }
+    }
+}
+
+.list-card {
+    grid-area: list; // Alocação na área 'list'
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        h2 { margin: 0; }
+    }
+
+    .list-body {
+        flex-grow: 1;
+        overflow-y: auto; // Garante que a lista longa seja rolável
+
+        p { color: $subtitle-color; text-align: center; }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            li {
+                background: $placeholder-bg;
+                padding: 0.5rem 0.75rem;
+                border-radius: 6px;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+                word-break: break-all;
+            }
+        }
+    }
+}
+
+// Estilos de Botões (mantidos e ligeiramente ajustados)
+.btn {
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.2s, opacity 0.2s;
+    border: none;
+    font-size: 0.9rem;
+    
+    &.primary {
+        background: $button-bg;
+        color: $button-color;
+        &:hover { background: $button-hover; }
+    }
+    
+    &.danger {
+        background: $status-rejected-color;
+        color: $button-color;
+        &:hover { background: darken($status-rejected-color, 10%); }
+    }
+    
+    &.flash-on {
+        background: orange;
+        color: $dark-text-color;
+    }
+
+    &.small {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
+
+// ... outros estilos que podem existir na base original, mas focamos nos principais containers

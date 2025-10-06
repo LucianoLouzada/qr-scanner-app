@@ -1,0 +1,28 @@
+// tsconfig.json
+
+{
+  "compilerOptions": {
+    // 1. Base
+    "target": "ES2022", // Atualizado para ES2022
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"], // Corrigido 'DOMContentLoad' para 'DOM.Iterable'
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "resolveJsonModule": true, // Mantido
+
+    // 2. Modo Bundler (Vite)
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    // 3. Linting e Rigor
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
