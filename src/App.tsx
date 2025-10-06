@@ -2,21 +2,23 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import QrScanner from 'qr-scanner';
-import { FaQrcode } from 'react-icons/fa';
 import './App.scss';
 // Importação dos novos componentes
-import { QrScannerView } from './components/QrScannerView';
-import { ScannedCodeList } from './components/ScannedCodeList';
+import { QrScannerView } from './components/QrScannerView.js';
+import { ScannedCodeList } from './components/ScannedCodeList.js';
 
 
 // --- Tipos e Interfaces ---
 
 // Interface para representar a instância do QrScanner (ajustada para ser mais robusta)
-interface QrScannerInstance extends QrScanner {
+// Minimal interface for the runtime QrScanner instance we use. We avoid
+// extending the library's namespace types directly to prevent TS errors
+// with the package's type exports.
+interface QrScannerInstance {
     destroy: () => void;
     start: () => Promise<void>;
     stop: () => void;
-    setFlash: (on: boolean) => Promise<void>;
+    setFlash?: (on: boolean) => Promise<void>;
 }
 type ScannedCode = string;
 
@@ -27,12 +29,12 @@ const SCAN_PAUSE_MS = 700; // pausa entre leituras
 // --- Componente App.tsx ---
 export default function App(): React.ReactElement {
     // --- Refs e Estados ---
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
     const scannerRef = useRef<QrScannerInstance | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
-    const acceptedAudioRef = useRef<HTMLAudioElement>(null);
-    const deniedAudioRef = useRef<HTMLAudioElement>(null);
+    const acceptedAudioRef = useRef<HTMLAudioElement | null>(null);
+    const deniedAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const [codes, setCodes] = useState<ScannedCode[]>(() => {
         try {
@@ -57,7 +59,7 @@ export default function App(): React.ReactElement {
 
     // --- Handlers Auxiliares ---
 
-    const play = useCallback((el: React.RefObject<HTMLAudioElement>): void => {
+    const play = useCallback((el: React.RefObject<HTMLAudioElement | null>): void => {
         try {
             if (el && el.current) {
                 el.current.currentTime = 0;
@@ -88,7 +90,9 @@ export default function App(): React.ReactElement {
         if (!('torch' in capabilities)) throw new Error('Torch not supported by track');
         
         try {
-            await videoTrack.applyConstraints({ advanced: [{ torch: !!on }] });
+            // Some TS lib types don't declare 'torch' on MediaTrackConstraintSet.
+            // Cast to any for the runtime call.
+            await (videoTrack as any).applyConstraints({ advanced: [{ torch: !!on }] } as any);
         } catch (e) {
             throw e;
         }
@@ -142,7 +146,9 @@ export default function App(): React.ReactElement {
         }
 
         if (videoRef.current) {
-            scannerRef.current = new QrScanner(videoRef.current, (result: QrScanner.ScanResult) => {
+            // qr-scanner's types don't align perfectly with the runtime import in some setups.
+            // Cast the constructor to any and treat the result as our minimal interface.
+            scannerRef.current = new (QrScanner as any)(videoRef.current, (result: any) => {
                 const code: ScannedCode = result.data;
                 if (codesRef.current.includes(code)) {
                     play(deniedAudioRef);
@@ -233,7 +239,7 @@ export default function App(): React.ReactElement {
             {/* Header */}
             <div className="card header">
                 <h1>QR Scanner</h1>
-                <p className="sub">Leitura única de QR Codes — sem repetição</p>
+                <p className="sub"></p>
             </div>
 
             {/* Scanner View (Componente Isolado) */}

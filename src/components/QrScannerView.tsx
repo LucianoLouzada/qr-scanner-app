@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { FaCamera, FaBolt } from 'react-icons/fa';
-import { StatusDisplay } from './StatusDisplay'; // Importa o componente StatusDisplay
+import { StatusDisplay } from './StatusDisplay.js'; // Importa o componente StatusDisplay
 
 // Tipagem das Props
 interface QrScannerViewProps {
-    videoRef: React.RefObject<HTMLVideoElement>;
+    videoRef: React.RefObject<HTMLVideoElement | null>;
     running: boolean;
     status: string;
     flashOn: boolean;
